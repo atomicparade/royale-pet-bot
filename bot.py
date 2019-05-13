@@ -113,7 +113,6 @@ class Bot(discord.Client):
             await self.close()
         elif command == "stats":
             if args is None:
-                # TODO: Check whether the sender has a Steam account
                 await self.respond(message, "Please specify a Steam Community name or Steam User ID.")
                 return
 
