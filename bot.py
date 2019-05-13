@@ -79,6 +79,8 @@ class Bot(discord.Client):
     async def on_message(self, message):
         user = message.author
         user_str = get_user_str(user)
+        user_name = get_user_name(user)
+        greeting = f"**{user_name}:**"
 
         command, args = extract_command(self.user.id, message)
 
@@ -91,7 +93,7 @@ class Bot(discord.Client):
                 return
 
             if not isinstance(message.channel, DMChannel):
-                await self.respond(message, "You may only use this command in a DM.")
+                await self.respond(message, f"{greeting} You may only use this command in a DM.")
                 return
 
             if self.admin.is_authorized(user):
@@ -113,7 +115,7 @@ class Bot(discord.Client):
             await self.close()
         elif command == "stats":
             if args is None:
-                await self.respond(message, "Please specify a Steam Community name or Steam User ID.")
+                await self.respond(message, f"{greeting} Please specify a Steam Community name or Steam User ID.")
                 return
 
             try:
@@ -121,12 +123,12 @@ class Bot(discord.Client):
             except FetchError:
                 logger.warn(f"Failed to retrieve stats for \"{args[1]}\": {repr(e)}")
                 # TODO: Consider setting a threshold for bailing (5 consecutive failures in 10 minutes)
-                await self.respond(message, f"Sorry, I couldn't get the stats. The admins have been notified.")
+                await self.respond(message, f"{greeting} Sorry, I couldn't get the stats. The admins have been notified.")
                 await notify_admins(f"Failed to retrieve stats for \"{args[1]}\": {repr(e)}")
                 return
 
             if player_data is None:
-                await self.respond(message, f"Unable to find a player with the name or ID \"{args[1]}\".")
+                await self.respond(message, f"{greeting} Unable to find a player with the name or ID \"{args[1]}\".")
                 return
 
             response = Embed(title=player_data.name, url=player_url)
@@ -171,22 +173,26 @@ class Bot(discord.Client):
             await self.respond(message, response)
 
     def notify_admins(self, content, about_user=None):
-        if not isinstance(content, Embed):
+        if not isinstance(content, Embed) and about_user is not None:
             content = Embed(description=content)
+            content.set_thumbnail(url=about_user.avatar_url)
 
-            if about_user is not None:
-                content.set_thumbnail(url=about_user.avatar_url)
+        if isinstance(content, Embed):
+            return asyncio.gather(*[user.send(embed=content) for user in self.admin.list])
+        else:
+            return asyncio.gather(*[user.send(content) for user in self.admin.list])
 
-        return asyncio.gather(*[user.send(embed=content) for user in self.admin.list])
-
-    def respond(self, message, response):
-        if not isinstance(response, Embed):
+    def respond(self, message, response, make_embed=False):
+        if make_embed:
             response = Embed(description=response)
             response.set_footer(
                 text=get_user_name(message.author),
                 icon_url=message.author.avatar_url)
 
-        return message.channel.send(embed=response)
+        if isinstance(response, Embed):
+            return message.channel.send(embed=response)
+        else:
+            return message.channel.send(response)
 
 if __name__ == "__main__":
     load_dotenv()
