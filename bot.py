@@ -148,6 +148,27 @@ class Bot(discord.Client):
                             stats_content += "\n"
                         stats_content += f"**{key}:** {player_data.stats[stats_group][key]}"
 
+                        if key == "Wins":
+                            try:
+                                win_percent = player_data.stats[stats_group]["Wins"].value / player_data.stats[stats_group]["Games Played"].value
+                                stats_content += f" ({win_percent:0.1%})"
+                            except:
+                                pass
+
+                        if key == "Kills":
+                            try:
+                                kdr = player_data.stats[stats_group]["Kills"].value / player_data.stats[stats_group]["Deaths"].value
+                                stats_content += f" (K/D: {kdr:0.1f})"
+                            except:
+                                pass
+
+                        if key in ["Top 5", "Top 3", "Top 2"]:
+                            try:
+                                top_percent = player_data.stats[stats_group][key].value / player_data.stats[stats_group]["Games Played"].value
+                                stats_content += f" ({top_percent:0.1%})"
+                            except:
+                                pass
+
                     # Adjust inlining based on the number of mode sections
                     # because the Combat and Miscellaneous sections are longer
                     #
