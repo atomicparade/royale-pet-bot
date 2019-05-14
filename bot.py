@@ -10,7 +10,7 @@ import discord
 from discord import DMChannel, Embed, Member
 from dotenv import load_dotenv
 
-from rp_api import FetchError, fetch_player_data
+from rp_scraper import FetchError, fetch_player_data
 from adminlist import AdminList
 
 logger = logging.getLogger("rpb")
