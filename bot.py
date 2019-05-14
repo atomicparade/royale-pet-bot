@@ -203,9 +203,11 @@ class Bot(discord.Client):
         else:
             return asyncio.gather(*[user.send(content) for user in self.admin.list])
 
-    def respond(self, message, response, make_embed=False):
-        if make_embed:
-            response = Embed(description=response)
+    def respond(self, message, response, put_author_in_footer=False):
+        if put_author_in_footer:
+            if not isinstance(response, Embed):
+                response = Embed(description=response)
+
             response.set_footer(
                 text=get_user_name(message.author),
                 icon_url=message.author.avatar_url)
