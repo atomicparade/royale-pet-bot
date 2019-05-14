@@ -23,9 +23,9 @@ class Statistic:
                 return f"{self.value}"
         else:
             try:
-                return f"{self.value:,} (Rank: {self.rank}"
+                return f"{self.value:,} (#{self.rank})"
             except ValueError:
-                return f"{self.value} (Rank: {self.rank}"
+                return f"{self.value} (#{self.rank})"
 
 class FetchError(Exception):
     pass
@@ -105,6 +105,7 @@ def parse_html_into_stats(html):
         for stat_pair in stats_group.find_all("li", class_="stat-pair"):
             key = None
             value = None
+            rank = None
 
             for el in stat_pair.find_all("a", class_="field"):
                 key = el.string
@@ -120,8 +121,18 @@ def parse_html_into_stats(html):
 
                 break
 
+            for el in stat_pair.find_all("div", "ranking"):
+                rank = el.string
+
+                try:
+                    rank = int(rank.replace(",", ""))
+                except ValueError:
+                    pass
+
+                break
+
             if key is not None and value is not None:
-                stats_section[key] = Statistic(value)
+                stats_section[key] = Statistic(value, rank)
 
         player_data.stats[title] = stats_section
 
