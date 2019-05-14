@@ -113,6 +113,8 @@ class Bot(discord.Client):
             logger.info(f"Quitting per {user_str}")
             await self.notify_admins(f"Quitting per {user_str}.", user)
             await self.close()
+        elif command == "help":
+            await self.respond(message, f"To get stats for a player, use <@{self.user.id}> stats [Player's Steam Community URL]")
         elif command == "stats":
             if args is None:
                 await self.respond(message, f"{greeting} Please specify a Steam Community name or Steam User ID.")
